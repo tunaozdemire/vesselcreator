@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vessel Creator - Architectural Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #1a1a1a;
+      --bg2: #121212;
+      --bg3: #0a0a0a;
+      --card: #222222;
+      --border: #333333;
+      --text: #eeeeee;
+      --soft: #888888;
+      --brand1: #000000;
+      --brand2: #222222;
+      --brand3: #444444;
+      --accent: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html, body { 
+      margin: 0; 
+      min-height: 100%; 
+      font-family: "Outfit", sans-serif; 
+      color: var(--text); 
+      background: linear-gradient(160deg, var(--bg1), var(--bg2) 40%, var(--bg3)); 
+    }
+    .wrap { min-height: 100vh; padding: 24px 16px 56px; display: flex; justify-content: center; }
+    .card { 
+      width: 100%; 
+      max-width: 860px; 
+      background: var(--card); 
+      border: 1px solid var(--border); 
+      border-radius: 24px; 
+      overflow: hidden; 
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5); 
+    }
+    .top { 
+      padding: 32px 32px 28px; 
+      background: linear-gradient(135deg, #000, #333); 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 16px; 
+      border-bottom: 1px solid var(--border);
+    }
+    .sub, .label, .mono, .hint, .meta-lbl, .badge { 
+      font-family: "DM Mono", monospace; 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+    }
+    .sub { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+    .brand { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .brand em { font-style: normal; color: #888; }
+    .count { 
+      padding: 10px 16px; 
+      border-radius: 12px; 
+      background: rgba(255,255,255,0.05); 
+      border: 1px solid rgba(255,255,255,0.1); 
+      color: #fff; 
+      text-align: right;
+    }
+    .count strong { display: block; font-size: 22px; line-height: 1; }
+    
+    .body { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .config { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .field { 
+      padding: 16px; 
+      border-radius: 18px; 
+      border: 1px solid var(--border); 
+      background: rgba(255,255,255,0.02); 
+    }
+    .label { font-size: 10px; color: var(--soft); margin-bottom: 10px; }
+    
+    input, select, button { font: 600 14px/1 "Outfit", sans-serif; }
+    input[type=text], input[type=password], select { 
+      width: 100%; 
+      height: 44px; 
+      border-radius: 10px; 
+      border: 1px solid #444; 
+      background: #000; 
+      color: #fff;
+      padding: 0 14px; 
+      outline: none; 
+      transition: 0.2s;
+    }
+    input[type=text]:focus, input[type=password]:focus, select:focus { 
+      border-color: #888; 
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.05); 
+    }
+    
+    .small { 
+      font: 500 10px/1.6 "DM Mono", monospace; 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      color: #555; 
+      margin-top: 10px; 
+    }
+    .check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    .check input { width: 18px; height: 18px; accent-color: #fff; }
+    .check label { font-weight: 700; color: #aaa; }
+    
+    .divider { height: 1px; background: var(--border); }
+    
+    .themes { display: flex; flex-wrap: wrap; gap: 8px; }
+    .theme { 
+      border: 1px solid #333; 
+      background: #1a1a1a; 
+      color: #888; 
+      padding: 10px 16px; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      transition: 0.2s; 
+    }
+    .theme:hover { border-color: #555; background: #222; color: #fff; }
+    .theme.active { border-color: #fff; background: #fff; color: #000; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    
+    .trigger { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .dot { 
+      width: 60px; 
+      height: 44px; 
+      border-radius: 10px; 
+      border: 1px solid #444; 
+      background: #000; 
+      text-align: center; 
+      color: #fff; 
+      font: 700 20px/1 "DM Mono", monospace; 
+      outline: none; 
+    }
+    .btn, .copy, .ghost { border: none; cursor: pointer; transition: 0.15s; font-weight: 800; }
+    .btn:active, .copy:active, .ghost:active { transform: scale(0.97); }
+    .btn { 
+      flex: 1; 
+      min-width: 220px; 
+      height: 44px; 
+      border-radius: 10px; 
+      color: #000; 
+      background: #fff;
+    }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .ghost { 
+      height: 44px; 
+      border-radius: 10px; 
+      padding: 0 20px; 
+      background: #333; 
+      color: #fff; 
+    }
+    
+    .hint { font-size: 10px; color: #444; margin-top: -6px; }
+    .status { display: none; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; }
+    .status.show { display: block; }
+    .status.info { background: #333; color: #fff; border: 1px solid #444; }
+    .status.error { background: #441111; color: #ff8888; border: 1px solid #662222; }
+    
+    .loading, .empty { 
+      min-height: 200px; 
+      border-radius: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 12px; 
+    }
+    .loading { background: rgba(255,255,255,0.02); border: 1px solid var(--border); }
+    .pulse { width: 40px; height: 40px; background: #fff; border-radius: 8px; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 
+      0% { transform: scale(0.8); opacity: 0.2; border-radius: 20px; }
+      50% { transform: scale(1.1); opacity: 0.8; border-radius: 4px; }
+      100% { transform: scale(0.8); opacity: 0.2; border-radius: 20px; }
+    }
+    
+    .empty { border: 1px dashed var(--border); }
+    
+    .output { display: flex; flex-direction: column; gap: 16px; }
+    .block { border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: #1a1a1a; }
+    .head { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #222; }
+    .title { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 14px; font-weight: 800; }
+    .title .num { color: #555; font-family: "DM Mono", monospace; }
+    .badge { font-size: 9px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); color: #888; }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .copy, .peek { 
+      min-width: 100px; 
+      height: 32px; 
+      padding: 0 16px; 
+      color: #fff; 
+      border: 1px solid #444; 
+      border-radius: 8px; 
+      font-size: 11px; 
+      background: transparent;
+      cursor: pointer;
+    }
+    .peek.open { background: #444; border-color: #666; }
+    
+    .content, .meta-val { white-space: pre-wrap; word-break: break-word; font-family: "DM Mono", monospace; line-height: 1.7; font-size: 12px; }
+    .content { padding: 20px; color: #aaa; }
+    .content.hidden, .meta.hidden { display: none; }
+    
+    .copy-panel { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .copy-big { 
+      width: 100%; 
+      height: 54px; 
+      padding: 0 16px; 
+      border-radius: 12px; 
+      border: 1px solid #444; 
+      background: #111; 
+      color: #fff; 
+      font-size: 14px; 
+      text-align: center;
+      transition: 0.2s;
+    }
+    .copy-big:hover { border-color: #888; background: #222; }
+    .copy-big.done { border-color: #fff; color: #fff; background: #333; }
+    
+    .meta { padding: 20px; display: grid; gap: 16px; border-top: 1px solid var(--border); }
+    .meta-row { margin-bottom: 4px; }
+    .meta-lbl { font-size: 9px; color: #555; margin-bottom: 6px; }
+    .meta-val { color: #eee; }
+    .meta-val.nm { font-family: "Outfit", sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    
+    .foot { 
+      padding: 16px; 
+      text-align: center; 
+      font-size: 11px; 
+      color: #444; 
+      font-family: "DM Mono", monospace; 
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+    }
+    .foot span { color: #666; text-transform: none; letter-spacing: 0; font-family: "Outfit", sans-serif; margin-left: 8px; }
+
+    @media (max-width: 1100px) { .config { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { 
+      .config { grid-template-columns: 1fr; } 
+      .top { flex-direction: column; align-items: flex-start; }
+      .copy-panel { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div><div class="sub">Obsidian Architectural Series</div><div class="brand">VESSEL <em>STUDIO</em></div></div>
+        <div class="count">Visions Generated<strong id="count">0</strong></div>
+      </div>
+      <div class="body">
+        <div class="config">
+          <div class="field"><div class="label">Gemini API Key</div><input id="apiKey" type="password" placeholder="Paste API key"><div class="small">Direct browser mode. Local use only.</div></div>
+          <div class="field"><div class="label">Gemini Model</div><select id="model"></select><div class="small">Latest Flash models recommended for speed.</div></div>
+          <div class="field"><div class="label">Aspect Mode</div><select id="mode"></select><div class="small">Monolith focus keeps the facets razor sharp.</div></div>
+          <div class="field"><div class="label">Persistence</div><div class="check"><input id="remember" type="checkbox"><label for="remember">Save key locally</label></div><div class="small">Settings persist in your browser.</div></div>
+        </div>
+        <div class="divider"></div>
+        <div><div class="label">Material Theme</div><div id="themes" class="themes"></div></div>
+        <div class="divider"></div>
+        <div class="trigger"><div class="label mono">Trigger</div><input id="trigger" class="dot" maxlength="1" placeholder="."><button id="generate" class="btn" type="button">Initiate Synthesis</button><button id="clear" class="ghost" type="button">Reset</button></div>
+        <div class="hint">Press "." and Enter to generate.</div>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div id="mount"></div>
+        <div class="foot">Vessel Core v1.0 <span>Autonomous Architectural Engine • Standalone HTML</span></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const STORE = { apiKey: "vesselCreator.apiKey", model: "vesselCreator.model", theme: "vesselCreator.theme", mode: "vesselCreator.mode" };
+    const MODELS = [
+      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash", note: "Best for architectural rapid-prototyping" },
+      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro", note: "Deep reasoning for complex geometry" },
+      { value: "gemini-3.1-flash-lite-preview", label: "Gemini 3.1 Flash-Lite", note: "Next-gen ultra-fast synthesis" }
+    ];
+    const MODES = [
+      { value: "monolith", label: "Monolith Focus", note: "Preserves sharp hexagonal facets" },
+      { value: "organic", label: "Structural Flow", note: "Softens edges for fluid architectural forms" },
+      { value: "long", label: "Vertical Slender", note: "Forces elongated tall proportions" },
+      { value: "short", label: "Horizontal Squat", note: "Forces wide stable proportions" }
+    ];
+    
+    const SYSTEM_PROMPT = `You are VESSEL STUDIO, an expert AI architectural designer for premium geometric collectible vessels.
+The reference model is a GLOSSY OBSIDIAN BLACK HEXAGONAL FACETED VESSEL.
+
+Return ONLY raw JSON. No markdown.
+
+Design DNA:
+- Primary form: Hexagonal cylinder with sharp faceted side-panels
+- Surface: Ultra-smooth, high-gloss, reflective, liquid obsidian read
+- Interior: Hollow container/vessel functionality
+- Silhouette: Minimalist, architectural, premium desktop decor
+- Environment: Studio lighting, pure white background, soft floor shadow
+
+Rule of Variations:
+- Height Shift: The user may request "Long" (tall, slender tower) or "Short" (squat, bowl-like) versions.
+- Facet Preservation: Always maintain the hexagonal faceted logic even when changing height or material.
+- Material Themes: You will be given a theme (Marble, Jade, Gold, etc.). Apply this material while keeping the facets.
+- Detail Distribution: Add themed details across the facets, the top rim, and the base. Cues must look molded and architectural.
+
+Output this exact JSON shape:
+{
+  "frontPrompt": "100-120 word IMAGE EDITING INSTRUCTION to transform the reference black vessel into a themed variant, specifying the height (long/short), material finish, and architectural details on the facets.",
+  "sidePrompt": "80-90 word orthographic side profile instruction preserving the same theme and material.",
+  "topPrompt": "80-90 word top-down view looking into the vessel, showing the rim thickness and interior material.",
+  "realWorldPrompt": "100-120 word description for a real-world photo of the object as a 3D printed decor piece on a high-end designer desk, mention layer lines and specific filament texture.",
+  "name": "Vessel [Theme] - [Proportion] Architectural Monolith",
+  "description": "150-180 word luxury marketplace description focusing on architectural geometry and decor use.",
+  "tags": "exactly 20 comma-separated architectural and decor tags",
+  "stlName": "Vessel-[THEME]-[PROPORTION]-v1.stl",
+  "patreonTitle": "Download: Architectural Vessel - [Theme] [Proportion]",
+  "patreonPost": "Standardized Patreon post text with filament recommendations (Main Color + Accent Color)."
+}`;
+
+    const THEMES = [
+      { id: "obsidian", label: "Obsidian", color: "#000000", bg: "#1a1a1a", border: "#333333" },
+      { id: "marble", label: "Carrara Marble", color: "#ffffff", bg: "#f0f0f0", border: "#cccccc" },
+      { id: "jade", label: "Imperial Jade", color: "#00a86b", bg: "#e6f4ee", border: "#a8d8c8" },
+      { id: "gold", label: "24K Gold", color: "#d4af37", bg: "#faf3e0", border: "#ddbb33" },
+      { id: "cyber", label: "Cyber Neon", color: "#00ffcc", bg: "#001a1a", border: "#008888" },
+      { id: "zen", label: "Zen Stone", color: "#555555", bg: "#f5f5f5", border: "#aaaaaa" },
+      { id: "gothic", label: "Gothic Iron", color: "#222222", bg: "#0a0a0a", border: "#444444" },
+      { id: "lava", label: "Molten Magma", color: "#ff4400", bg: "#1a0a00", border: "#882200" }
+    ];
+
+    const els = {
+      count: document.getElementById("count"),
+      apiKey: document.getElementById("apiKey"),
+      model: document.getElementById("model"),
+      mode: document.getElementById("mode"),
+      remember: document.getElementById("remember"),
+      themes: document.getElementById("themes"),
+      trigger: document.getElementById("trigger"),
+      generate: document.getElementById("generate"),
+      clear: document.getElementById("clear"),
+      status: document.getElementById("status"),
+      mount: document.getElementById("mount")
+    };
+
+    const state = { loading: false, count: 0, copied: {}, visible: {}, result: null, theme: localStorage.getItem(STORE.theme) || "obsidian" };
+
+    const setStatus = (msg, type) => { els.status.textContent = msg || ""; els.status.className = "status" + (msg ? " show " + type : ""); };
+    
+    els.mount.addEventListener("click", e => {
+      const copyTarget = e.target.closest("[data-copy]");
+      if (copyTarget) { copyBlock(copyTarget.getAttribute("data-copy")); return; }
+      const toggleTarget = e.target.closest("[data-toggle]");
+      if (toggleTarget) toggleVisible(toggleTarget.getAttribute("data-toggle"));
+    });
+
+    const saveLocal = () => {
+      localStorage.setItem(STORE.model, els.model.value);
+      localStorage.setItem(STORE.theme, state.theme);
+      localStorage.setItem(STORE.mode, els.mode.value);
+      if (els.remember.checked && els.apiKey.value.trim()) localStorage.setItem(STORE.apiKey, els.apiKey.value.trim()); else localStorage.removeItem(STORE.apiKey);
+    };
+
+    const hydrateLocal = () => {
+      const k = localStorage.getItem(STORE.apiKey) || "";
+      if (k) { els.apiKey.value = k; els.remember.checked = true; }
+    };
+
+    const renderThemes = () => {
+      els.themes.innerHTML = "";
+      THEMES.forEach(t => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "theme" + (t.id === state.theme ? " active" : "");
+        b.textContent = t.label;
+        if (t.id === state.theme) { b.style.borderColor = t.color; }
+        b.onclick = () => { state.theme = t.id; saveLocal(); renderThemes(); };
+        els.themes.appendChild(b);
+      });
+    };
+
+    const renderEmpty = () => { els.mount.innerHTML = '<div class="empty"><div class="mono" style="font-size:10px;color:#444">Awaiting Signal...</div></div>'; };
+    const renderLoading = () => { els.mount.innerHTML = '<div class="loading"><div class="pulse"></div><div class="mono" style="font-size:10px;color:#888">Synthesizing Vision...</div></div>'; };
+
+    const renderResult = () => {
+      if (!state.result) return;
+      const res = state.result;
+      const b = (key, label, text) => `
+        <div class="block">
+          <div class="head">
+            <div class="title"><span>${label}</span></div>
+            <div class="actions">
+              <button type="button" class="peek ${state.visible[key] ? 'open' : ''}" data-toggle="${key}">${state.visible[key] ? 'Hide' : 'View'}</button>
+              <button type="button" class="copy" data-copy="${key}">${state.copied[key] ? 'Copied' : 'Copy'}</button>
+            </div>
+          </div>
+          <div class="content ${state.visible[key] ? '' : 'hidden'}">${text}</div>
+        </div>`;
+
+      els.mount.innerHTML = `
+        <div class="output">
+          ${b('front', 'Primary Synthesis', res.frontPrompt)}
+          ${b('side', 'Orthographic Side', res.sidePrompt)}
+          ${b('top', 'Zenith View', res.topPrompt)}
+          ${b('real', 'Physical Manifestation', res.realWorldPrompt)}
+          <div class="block">
+            <div class="head"><div class="title">Marketplace Metadata</div></div>
+            <div class="copy-panel">
+              <button class="copy-big ${state.copied.name ? 'done' : ''}" data-copy="name">${state.copied.name ? 'Name Saved' : 'Copy Name'}</button>
+              <button class="copy-big ${state.copied.description ? 'done' : ''}" data-copy="description">${state.copied.description ? 'Desc Saved' : 'Copy Desc'}</button>
+              <button class="copy-big ${state.copied.tags ? 'done' : ''}" data-copy="tags">${state.copied.tags ? 'Tags Saved' : 'Copy Tags'}</button>
+              <button class="copy-big ${state.copied.stl ? 'done' : ''}" data-copy="stl">${state.copied.stl ? 'STL Saved' : 'Copy STL Name'}</button>
+            </div>
+            <div class="meta">
+              <div><div class="meta-lbl">Title</div><div class="meta-val nm">${res.name}</div></div>
+              <div><div class="meta-lbl">Description</div><div class="meta-val">${res.description}</div></div>
+              <div><div class="meta-lbl">Tags</div><div class="meta-val">${res.tags}</div></div>
+            </div>
+          </div>
+        </div>`;
+    };
+
+    const toggleVisible = (key) => { state.visible[key] = !state.visible[key]; renderResult(); };
+    
+    const copyBlock = async (key) => {
+      const map = { front: state.result.frontPrompt, side: state.result.sidePrompt, top: state.result.topPrompt, real: state.result.realWorldPrompt, name: state.result.name, description: state.result.description, tags: state.result.tags, stl: state.result.stlName };
+      const text = map[key];
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        state.copied[key] = true; renderResult();
+        setTimeout(() => { state.copied[key] = false; renderResult(); }, 2000);
+      } catch (e) { setStatus("Copy failed.", "error"); }
+    };
+
+    const generate = async () => {
+      const key = els.apiKey.value.trim();
+      if (!key) { setStatus("API key required.", "error"); return; }
+      saveLocal(); state.loading = true; setStatus("Contacting Gemini...", "info"); renderLoading();
+      
+      const theme = THEMES.find(t => t.id === state.theme).label;
+      const prompt = `Synthesize iteration #${state.count + 1}. Theme: ${theme}. Mode: ${els.mode.value}. Create a ${els.mode.value} variant of the hexagonal vessel. Raw JSON only.`;
+      
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${els.model.value}:generateContent?key=${key}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "Request failed");
+        state.result = JSON.parse(data.candidates[0].content.parts[0].text);
+        state.count++; els.count.textContent = state.count;
+        renderResult(); setStatus("Synthesis complete.", "info");
+      } catch (err) {
+        setStatus(err.message, "error"); renderEmpty();
+      } finally { state.loading = false; }
+    };
+
+    els.generate.onclick = generate;
+    els.clear.onclick = () => { state.count = 0; state.result = null; els.count.textContent = "0"; renderEmpty(); };
+    els.trigger.onkeydown = e => { if (e.key === "Enter" && els.trigger.value === ".") { els.trigger.value = ""; generate(); } };
+    
+    els.model.innerHTML = MODELS.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
+    els.mode.innerHTML = MODES.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
+    hydrateLocal(); renderThemes(); renderEmpty();
+  </script>
+</body>
+</html>
