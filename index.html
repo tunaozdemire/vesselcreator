@@ -267,7 +267,7 @@
     </div>
   </div>
   <script>
-    const STORE = { apiKey: "vesselCreator.apiKey", model: "vesselCreator.model", theme: "vesselCreator.theme", mode: "vesselCreator.mode" };
+    const STORE = { apiKey: "vesselCreator.apiKey", model: "vesselCreator.model", style: "vesselCreator.style", mode: "vesselCreator.mode" };
     const MODELS = [
       { value: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro Preview", note: "Latest high-intelligence text model" },
       { value: "gemini-3-flash-preview", label: "Gemini 3 Flash Preview", note: "Latest fast frontier text model" },
@@ -301,9 +301,9 @@ CRITICAL MATERIAL LAWS:
 YOUR TASK:
 Modify ONLY the GEOMETRY and DESIGN based on the requested architectural style, adhering strictly to the MINIMALIST philosophy. 
 The form must always remain a hollow, functional geometric vessel/container with hexagonal DNA.
-Focus on subtle, powerful silhouette shifts rather than micro-details. Raw JSON only.`;
+Focus on subtle, powerful silhouette shifts rather than micro-details. 
 
-Output this exact JSON shape:
+Output this exact JSON shape (NO markdown, raw JSON only):
 {
   "frontPrompt": "100-120 word instruction for a master digital artist. Describe the specific geometric metamorphosis of the hexagonal vessel into the chosen style. Emphasize the razor-sharp facets and the liquid-black polished reflections. State clearly: No other colors allowed, only pure glossy black obsidian.",
   "sidePrompt": "80-90 word orthographic side profile focused on the silhouette and vertical faceted rhythm. Maintain the same polished black obsidian finish.",
@@ -334,7 +334,7 @@ Output this exact JSON shape:
       model: document.getElementById("model"),
       mode: document.getElementById("mode"),
       remember: document.getElementById("remember"),
-      themes: document.getElementById("themes"), // Reusing the ID for styles
+      themes: document.getElementById("themes"),
       trigger: document.getElementById("trigger"),
       generate: document.getElementById("generate"),
       clear: document.getElementById("clear"),
@@ -342,9 +342,19 @@ Output this exact JSON shape:
       mount: document.getElementById("mount")
     };
 
-    const state = { loading: false, count: 0, copied: {}, visible: {}, result: null, style: localStorage.getItem("vesselCreator.style") || "prism" };
+    const state = { 
+      loading: false, 
+      count: 0, 
+      copied: {}, 
+      visible: {}, 
+      result: null, 
+      style: localStorage.getItem(STORE.style) || "prism" 
+    };
 
-    const setStatus = (msg, type) => { els.status.textContent = msg || ""; els.status.className = "status" + (msg ? " show " + type : ""); };
+    const setStatus = (msg, type) => { 
+      els.status.textContent = msg || ""; 
+      els.status.className = "status" + (msg ? " show " + type : ""); 
+    };
     
     els.mount.addEventListener("click", e => {
       const copyTarget = e.target.closest("[data-copy]");
@@ -355,14 +365,22 @@ Output this exact JSON shape:
 
     const saveLocal = () => {
       localStorage.setItem(STORE.model, els.model.value);
-      localStorage.setItem("vesselCreator.style", state.style);
+      localStorage.setItem(STORE.style, state.style);
       localStorage.setItem(STORE.mode, els.mode.value);
-      if (els.remember.checked && els.apiKey.value.trim()) localStorage.setItem(STORE.apiKey, els.apiKey.value.trim()); else localStorage.removeItem(STORE.apiKey);
+      if (els.remember.checked && els.apiKey.value.trim()) {
+        localStorage.setItem(STORE.apiKey, els.apiKey.value.trim());
+      } else {
+        localStorage.removeItem(STORE.apiKey);
+      }
     };
 
     const hydrateLocal = () => {
       const k = localStorage.getItem(STORE.apiKey) || "";
       if (k) { els.apiKey.value = k; els.remember.checked = true; }
+      const m = localStorage.getItem(STORE.model);
+      if (m) els.model.value = m;
+      const mo = localStorage.getItem(STORE.mode);
+      if (mo) els.mode.value = mo;
     };
 
     const renderStyles = () => {
@@ -422,6 +440,7 @@ Output this exact JSON shape:
     const toggleVisible = (key) => { state.visible[key] = !state.visible[key]; renderResult(); };
     
     const copyBlock = async (key) => {
+      if (!state.result) return;
       const map = { front: state.result.frontPrompt, side: state.result.sidePrompt, top: state.result.topPrompt, real: state.result.realWorldPrompt, name: state.result.name, description: state.result.description, tags: state.result.tags, stl: state.result.stlName };
       const text = map[key];
       if (!text) return;
@@ -462,6 +481,7 @@ Rules: The overall form must change to reflect the ${style.label} style, but mus
             }
           })
         });
+        
         const data = await res.json();
         if (!res.ok) throw new Error(data.error?.message || "Request failed");
         
@@ -470,23 +490,41 @@ Rules: The overall form must change to reflect the ${style.label} style, but mus
           rawText = data.candidates[0].content.parts[0].text;
         }
         
-        if (!rawText) throw new Error("Gemini returned an empty response.");
+        if (!rawText) throw new Error("Gemini returned an empty response. Check your Safety Settings or try a different prompt.");
         
-        state.result = JSON.parse(rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
-        state.count++; els.count.textContent = state.count;
-        renderResult(); setStatus("Synthesis complete.", "info");
+        const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+        state.result = JSON.parse(cleanJson);
+        state.count++; 
+        els.count.textContent = state.count;
+        renderResult(); 
+        setStatus("Synthesis complete.", "info");
       } catch (err) {
-        setStatus(err.message, "error"); renderEmpty();
+        console.error(err);
+        setStatus(err.message, "error"); 
+        renderEmpty();
       } finally { state.loading = false; }
     };
 
     els.generate.onclick = generate;
-    els.clear.onclick = () => { state.count = 0; state.result = null; els.count.textContent = "0"; renderEmpty(); };
-    els.trigger.onkeydown = e => { if (e.key === "Enter" && els.trigger.value === ".") { els.trigger.value = ""; generate(); } };
+    els.clear.onclick = () => { 
+      state.count = 0; 
+      state.result = null; 
+      els.count.textContent = "0"; 
+      renderEmpty(); 
+      setStatus("System Reset.", "info");
+    };
+    els.trigger.onkeydown = e => { 
+      if (e.key === "Enter" && els.trigger.value === ".") { 
+        els.trigger.value = ""; 
+        generate(); 
+      } 
+    };
     
     els.model.innerHTML = MODELS.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
     els.mode.innerHTML = MODES.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
-    hydrateLocal(); renderStyles(); renderEmpty();
+    hydrateLocal(); 
+    renderStyles(); 
+    renderEmpty();
   </script>
 </body>
 </html>
